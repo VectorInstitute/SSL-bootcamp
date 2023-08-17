@@ -22,9 +22,8 @@ code formatting.
 
 For docstrings we use [numpy format](https://numpydoc.readthedocs.io/en/latest/format.html).
 
-We also use [flake8](https://flake8.pycqa.org/en/latest/) and [pylint](https://pylint.pycqa.org/en/stable/)
-for further static code analysis. The pre-commit hooks show errors which you need
-to fix before submitting a PR.
+We also use [ruff](https://github.com/astral-sh/ruff) for further static code analysis.
+The pre-commit hooks show errors which you need to fix before submitting a PR.
 
 Last but not the least, we use type hints in our code which is then checked using
 [mypy](https://mypy.readthedocs.io/en/stable/). Currently, mypy checks are not
