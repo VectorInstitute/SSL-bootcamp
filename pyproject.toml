@@ -2,16 +2,32 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.isort]
-multi_line_output = 10
-skip_gitignore = true
-use_parentheses = true
-
 [tool.black]
-line-length = 79
+line-length = 88
 
 [tool.mypy]
 ignore_missing_imports = true
 install_types = true
 pretty = true
 non_interactive = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+check_untyped_defs = true
+
+[tool.ruff]
+select = ["B", "C", "D", "E", "F", "I", "W"]
+line-length = 88
+
+[tool.ruff.isort]
+lines-after-imports = 2
+
+[tool.nbqa.addopts]
+ruff = [
+    "--ignore=D100,D203,D211,D212,D213,D401",
+    "--fix",
+    "--line-length=119",
+]
+black = ["--line-length=119"]
+
+[tool.nbqa.md]
+blacken-docs = true

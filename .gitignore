@@ -130,3 +130,9 @@ dmypy.json
 
 # pycharm
 .idea/
+
+# data extensions
+*.bin
+*.tar.gz
+*.zip
+*.txt
