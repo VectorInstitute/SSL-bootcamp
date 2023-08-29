@@ -1,6 +1,7 @@
 --extra-index-url https://download.pytorch.org/whl/cu117
 
 black
+copulas
 dataclasses
 ipykernel
 lightning==2.0.6
@@ -12,6 +13,7 @@ pandas
 pre-commit
 pytest
 pytest-cov
+pyod
 pytorch_tabular==1.0.2
 rtdl==0.0.13
 scikit-learn
