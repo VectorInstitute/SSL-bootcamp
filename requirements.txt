@@ -11,9 +11,9 @@ mypy
 nbqa[ruff,mypy,black,jupytext]
 pandas
 pre-commit
+pyod
 pytest
 pytest-cov
-pyod
 pytorch_tabular==1.0.2
 rtdl==0.0.13
 scikit-learn
