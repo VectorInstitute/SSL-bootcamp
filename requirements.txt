@@ -2,12 +2,15 @@
 
 black
 dataclasses
+
+ipdb
 ipykernel
 lightning==2.0.6
 lightning-bolts
 matplotlib
 mypy
 nbqa[ruff,mypy,black,jupytext]
+numpy
 pandas
 pre-commit
 pytest
@@ -15,11 +18,17 @@ pytest-cov
 pytorch_tabular==1.0.2
 rtdl==0.0.13
 scikit-learn
+sktime==0.4.1
+tabulate
 timm==0.9.2
 toml
 torch==1.13.1+cu117
 torchvision==0.14.1+cu117
+tqdm
 transformers==4.31.0
 types-requests
 types-setuptools
 wandb
+xlrd
+xlutils
+xlwt
