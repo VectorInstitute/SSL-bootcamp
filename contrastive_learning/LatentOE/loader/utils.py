@@ -1,3 +1,4 @@
+"""Utility class for data loading."""
 # Latent Outlier Exposure for Anomaly Detection with Contaminated Data
 # Copyright (c) 2022 Robert Bosch GmbH
 #
@@ -13,20 +14,26 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# ruff: noqa
+from typing import Any
+
 from torch.utils.data import Dataset
 
 
 class CustomDataset(Dataset):
-    def __init__(self, samples, labels):  # type: ignore
+    """Custom dataset class for loading data samples and labels."""
+
+    def __init__(self, samples: Any, labels: Any) -> None:
+        """Initialize the dataset."""
         self.labels = labels
         self.samples = samples
         self.dim_features = samples.shape[1]
 
-    def __len__(self):  # type: ignore
+    def __len__(self) -> int:  # type: ignore
+        """Return the length of the dataset."""
         return len(self.labels)
 
-    def __getitem__(self, idx):  # type: ignore
+    def __getitem__(self, idx: int) -> dict:
+        """Return the data sample at the given index."""
         label = self.labels[idx]
         sample = self.samples[idx]
         data = {"sample": sample, "label": label}

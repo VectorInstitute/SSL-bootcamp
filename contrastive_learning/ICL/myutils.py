@@ -1,56 +1,36 @@
-# type: ignore
-# ruff: noqa
+"""Utility functions for ICL."""
 import random
+from typing import Dict, Literal, Tuple, Union
 
-# plot
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
-
-# statistical analysis
 from scipy.stats import wilcoxon
-
-# import tensorflow as tf
-# metric
 from sklearn.metrics import average_precision_score, roc_auc_score
 
 
 class Utils:
-    def __init__(self):
-        pass
+    """Utility Class for ICL."""
 
     # remove randomness
-    def set_seed(self, seed):  # type: ignore
-        # os.environ['PYTHONHASHSEED'] = str(seed)
-        # os.environ['_CUDNN_DETERMINISTIC'] = 'true'
-        # os.environ['TF_DETERMINISTIC_OPS'] = 'true'
-
-        # basic seed
+    def set_seed(self, seed: int) -> None:
+        """Set a random seed."""
         np.random.seed(seed)
         random.seed(seed)
-
-        # tensorflow seed
-        # try:
-        #    tf.random.set_seed(seed) # for tf >= 2.0
-        # except:
-        #    tf.set_random_seed(seed)
-        #    tf.random.set_random_seed(seed)
-
-        # pytorch seed
         torch.manual_seed(seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
-    def get_device(self, gpu_specific=False):  # type: ignore
+    def get_device(self, gpu_specific: bool = False) -> torch.device:
+        """Return torch.device."""
         if gpu_specific:
             if torch.cuda.is_available():
                 n_gpu = torch.cuda.device_count()
-                print(f"number of gpu: {n_gpu}")
+                print(f"Found {n_gpu} GPUs")
                 print(f"cuda name: {torch.cuda.get_device_name(0)}")
-                print("GPU is on")
             else:
-                print("GPU is off")
+                print("GPU is unavailable!")
 
             device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         else:
@@ -58,11 +38,13 @@ class Utils:
         return device
 
     # generate unique value
-    def unique(self, a, b):  # type: ignore
+    def unique(self, a: float, b: float) -> int:
+        """Generate unique value."""
         u = 0.5 * (a + b) * (a + b + 1) + b
         return int(u)
 
-    def data_description(self, X, y):  # type: ignore
+    def data_description(self, X: np.ndarray, y: np.ndarray) -> None:
+        """Print a description of the data."""
         des_dict = {}
         des_dict["Samples"] = X.shape[0]
         des_dict["Features"] = X.shape[1]
@@ -71,15 +53,21 @@ class Utils:
 
         print(des_dict)
 
-    # metric
-    def metric(self, y_true, y_score, pos_label=1):  # type: ignore
+    def metric(
+        self, y_true: np.ndarray, y_score: np.ndarray, pos_label: int = 1
+    ) -> Dict[str, Union[float, np.ndarray]]:
+        """Return aucroc and aucpr."""
         aucroc = roc_auc_score(y_true=y_true, y_score=y_score)
-        aucpr = average_precision_score(y_true=y_true, y_score=y_score, pos_label=1)
+        aucpr = average_precision_score(
+            y_true=y_true, y_score=y_score, pos_label=pos_label
+        )
 
         return {"aucroc": aucroc, "aucpr": aucpr}
 
-    # resampling function
-    def sampler(self, X_train, y_train, batch_size):  # type: ignore
+    def sampler(
+        self, X_train: np.ndarray, y_train: np.ndarray, batch_size: int
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Resample the data."""
         index_u = np.where(y_train == 0)[0]
         index_a = np.where(y_train == 1)[0]
 
@@ -91,22 +79,27 @@ class Utils:
 
             index_a_batch = np.random.choice(index_a, batch_size // 2, replace=True)
 
-            # batch index
-            index_batch = np.append(index_u_batch, index_a_batch)
-            # shuffle
-            np.random.shuffle(index_batch)
+            index_batch = np.append(index_u_batch, index_a_batch)  # batch index
+            np.random.shuffle(index_batch)  # shuffle
 
             if n == 0:
                 X_train_new = X_train[index_batch]
                 y_train_new = y_train[index_batch]
             else:
-                X_train_new = np.append(X_train_new, X_train[index_batch], axis=0)
-                y_train_new = np.append(y_train_new, y_train[index_batch])
+                X_train_new = np.append(
+                    X_train_new, X_train[index_batch], axis=0  # type: ignore
+                )
+                y_train_new = np.append(
+                    y_train_new, y_train[index_batch]  # type: ignore
+                )
             n += 1
 
-        return X_train_new, y_train_new
+        return X_train_new, y_train_new  # type: ignore
 
-    def sampler_2(self, X_train, y_train, step, batch_size=512):  # type: ignore
+    def sampler_2(
+        self, X_train: np.ndarray, y_train: np.ndarray, step: int, batch_size: int = 512
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Resample the data."""
         index_u = np.where(y_train == 0)[0]
         index_a = np.where(y_train == 1)[0]
 
@@ -123,20 +116,52 @@ class Utils:
                 X_train_new = X_train[index_batch]
                 y_train_new = y_train[index_batch]
             else:
-                X_train_new = np.append(X_train_new, X_train[index_batch], axis=0)
-                y_train_new = np.append(y_train_new, y_train[index_batch])
+                X_train_new = np.append(
+                    X_train_new, X_train[index_batch], axis=0  # type: ignore
+                )
+                y_train_new = np.append(
+                    y_train_new, y_train[index_batch]  # type: ignore
+                )
 
-        return X_train_new, y_train_new
+        return X_train_new, y_train_new  # type: ignore
 
     # for PReNet
     def sampler_pairs(
-        self, X_train_tensor, y_train, epoch, batch_num, batch_size, s_a_a, s_a_u, s_u_u
-    ):  # type: ignore
-        """X_train_tensor: the input X in the torch.tensor form
-        y_train: label in the numpy.array form.
+        self,
+        X_train_tensor: torch.Tensor,
+        y_train: torch.Tensor,
+        epoch: int,
+        batch_num: int,
+        batch_size: int,
+        s_a_a: float,
+        s_a_u: float,
+        s_u_u: float,
+    ) -> tuple:
+        """Return a pair of dataloaders - one for X and one for y.
 
-        batch_num: generate how many batches in one epoch
-        batch_size: the batch size
+        Parameters
+        ----------
+        X_train_tensor : torch.Tensor
+            The input X.
+        y_train : np.ndarray
+            The labels.
+        epoch : int
+            The current epoch.
+        batch_num : int
+            The number of batches to generate in one epoch.
+        batch_size :  int
+            The batch size.
+        s_a_a : float
+            The label for (a,a) pair.
+        s_a_u : float
+            The label for (a,u) pair.
+        s_u_u : float
+            The label for (u,u) pair.
+
+        Returns
+        -------
+        tuple
+            A tuple of dataloaders - one for X and one for y.
         """
         data_loader_X = []
         data_loader_y = []
@@ -199,7 +224,8 @@ class Utils:
         return data_loader_X, data_loader_y
 
     # gradient norm
-    def grad_norm(self, grad_tuple):  # type: ignore
+    def grad_norm(self, grad_tuple: Tuple[torch.Tensor]) -> torch.Tensor:
+        """Return the norm of the gradient."""
         grad = torch.tensor([0.0])
         for i in range(len(grad_tuple)):
             grad += torch.norm(grad_tuple[i])
@@ -207,7 +233,8 @@ class Utils:
         return grad
 
     # visualize the gradient flow in network
-    def plot_grad_flow(self, named_parameters):  # type: ignore
+    def plot_grad_flow(self, named_parameters: dict) -> None:
+        """Plot the gradient flow in network."""
         ave_grads = []
         layers = []
         for n, p in named_parameters:
@@ -223,12 +250,10 @@ class Utils:
         plt.title("Gradient flow")
         plt.grid(True)
 
-    # def torch_wasserstein_loss(tensor_a, tensor_b):
-    #     # Compute the first Wasserstein distance between two 1D distributions.
-    #     return (torch_cdf_loss(tensor_a, tensor_b, p=1))
-
-    # Calculate the First Wasserstein Distance
-    def torch_cdf_loss(self, tensor_a, tensor_b, p=1):  # type: ignore
+    def torch_cdf_loss(
+        self, tensor_a: torch.Tensor, tensor_b: torch.Tensor, p: int = 1
+    ) -> torch.Tensor:
+        """Calculate the First Wasserstein Distance."""
         # last-dimension is weight distribution
         # p is the norm of the distance, p=1 --> First Wasserstein Distance
         # to get a positive weight with our normalized distribution
@@ -257,8 +282,16 @@ class Utils:
         cdf_loss = cdf_distance.mean()
         return cdf_loss
 
-    # Calculate the loss like devnet in PyTorch
-    def cal_loss(self, y, y_pred, mode="devnet"):  # type: ignore
+    def torch_wasserstein_loss(
+        self, tensor_a: torch.Tensor, tensor_b: torch.Tensor
+    ) -> torch.Tensor:
+        """Compute the first Wasserstein distance between two 1D distributions."""
+        return self.torch_cdf_loss(tensor_a, tensor_b, p=1)
+
+    def cal_loss(
+        self, y: torch.Tensor, y_pred: torch.Tensor, mode: Literal["devnet"] = "devnet"
+    ) -> torch.Tensor:
+        """Calculate the loss like devnet in PyTorch."""
         if mode == "devnet":
             y_pred.squeeze_()
 
@@ -274,7 +307,10 @@ class Utils:
 
         return loss
 
-    def result_process(self, result_show, name, std=False):  # type: ignore
+    def result_process(
+        self, result_show: pd.DataFrame, name: str, std: bool = False
+    ) -> pd.DataFrame:
+        """Process the result."""
         # average performance
         ave_metric = np.mean(result_show, axis=0).values
         std_metric = np.std(result_show, axis=0).values
@@ -301,11 +337,12 @@ class Utils:
         if std:
             result_show.loc["Ave.metric"] = [
                 str(format(round(a, 3), ".3f")) + "±" + str(format(round(s, 3), ".3f"))
-                for a, s in zip(ave_metric, std_metric)
+                for a, s in zip(ave_metric, std_metric, strict=True)  # type: ignore
             ]
         else:
             result_show.loc["Ave.metric"] = [
-                str(format(round(a, 3), ".3f")) for a, s in zip(ave_metric, std_metric)
+                str(format(round(a, 3), ".3f"))
+                for a, s in zip(ave_metric, std_metric, strict=True)  # type: ignore
             ]
 
         # the p-value of wilcoxon statistical test

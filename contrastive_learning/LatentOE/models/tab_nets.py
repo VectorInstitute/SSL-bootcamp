@@ -1,3 +1,4 @@
+"""Tabular networks for latent OE."""
 # Latent Outlier Exposure for Anomaly Detection with Contaminated Data
 # Copyright (c) 2022 Robert Bosch GmbH
 #
@@ -13,12 +14,23 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# ruff: noqa
+import sys
+from typing import TYPE_CHECKING, Tuple
+
 import torch.nn as nn
+from torch import Tensor
+
+
+sys.path.append("..")
+if TYPE_CHECKING:
+    from config.base import Config
 
 
 class TabTransformNet(nn.Module):
-    def __init__(self, x_dim, h_dim, bias, num_layers):  # type: ignore
+    """Tabular transformation network."""
+
+    def __init__(self, x_dim: int, h_dim: int, bias: bool, num_layers: int) -> None:
+        """Init."""
         super(TabTransformNet, self).__init__()
         net = []
         input_dim = x_dim
@@ -30,14 +42,26 @@ class TabTransformNet(nn.Module):
 
         self.net = nn.Sequential(*net)
 
-    def forward(self, x):  # type: ignore
+    def forward(self, x: Tensor) -> Tensor:
+        """Forward pass."""
         out = self.net(x)
 
         return out
 
 
 class TabEncoder(nn.Module):
-    def __init__(self, x_dim, h_dim, z_dim, bias, num_layers, batch_norm):  # type: ignore
+    """Tabular encoder."""
+
+    def __init__(
+        self,
+        x_dim: int,
+        h_dim: int,
+        z_dim: int,
+        bias: bool,
+        num_layers: int,
+        batch_norm: bool,
+    ) -> None:
+        """Init."""
         super(TabEncoder, self).__init__()
 
         enc = []
@@ -52,7 +76,8 @@ class TabEncoder(nn.Module):
         self.enc = nn.Sequential(*enc)
         self.fc = nn.Linear(input_dim, z_dim, bias=bias)
 
-    def forward(self, x):  # type: ignore
+    def forward(self, x: Tensor) -> Tensor:
+        """Forward pass."""
         z = self.enc(x)
         z = self.fc(z)
 
@@ -60,13 +85,17 @@ class TabEncoder(nn.Module):
 
 
 class TabNets:
-    def _make_nets(self, x_dim, config):  # type: ignore
+    """Tabular networks for latent OE."""
+
+    def _make_nets(
+        self, x_dim: int, config: "Config"
+    ) -> Tuple[nn.Module, nn.ModuleList]:
         enc_nlayers = config["enc_nlayers"]
         try:
             hdim = config["enc_hdim"]
             zdim = config["latent_dim"]
             trans_dim = config["trans_hdim"]
-        except:
+        except KeyError:
             if 32 <= x_dim <= 300:
                 zdim = 32
                 hdim = 64

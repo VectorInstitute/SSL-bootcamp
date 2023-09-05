@@ -1,3 +1,4 @@
+"""Dataset configuration."""
 # Latent Outlier Exposure for Anomaly Detection with Contaminated Data
 # Copyright (c) 2022 Robert Bosch GmbH
 #
@@ -13,24 +14,31 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# ruff: noqa
 
 
 class Thyroid:
+    """Thyroid dataset."""
+
     data_name = "thyroid"
     num_cls = 1
 
 
 class Arrhythmia:
+    """Arrhythmia dataset."""
+
     data_name = "arrhythmia"
     num_cls = 1
 
 
-class cifar10_feat:
+class CIFAR10Feat:
+    """CIFAR10 dataset."""
+
     data_name = "cifar10_feat"
     num_cls = 10
 
 
-class fmnist_feat:
+class FMNISTFeat:
+    """FMNIST dataset."""
+
     data_name = "fmnist_feat"
     num_cls = 10

@@ -1,3 +1,4 @@
+"""K-variants evaluation for risk assessment."""
 # Latent Outlier Exposure for Anomaly Detection with Contaminated Data
 # Copyright (c) 2022 Robert Bosch GmbH
 #
@@ -13,20 +14,39 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# type: ignore
-# ruff: noqa
 import json
 import os
 import random
+import sys
+from typing import TYPE_CHECKING, Any, Type
 
 import numpy as np
 import torch
-from loader.LoadData import load_data
-from utils import Logger
+
+
+sys.path.append("..")
+from loader.load_data import load_data  # noqa: E402
+from utils import Logger  # noqa: E402
+
+from .experiments import ExperimentRunner  # noqa: E402
+
+
+if TYPE_CHECKING:
+    from config.base import Grid
 
 
 class KVariantEval:
-    def __init__(self, dataset, exp_path, model_configs, contamination, query_num):  # type: ignore
+    """Class for running an experiment using a model configuration."""
+
+    def __init__(
+        self,
+        dataset: Any,
+        exp_path: str,
+        model_configs: "Grid",
+        contamination: float,
+        query_num: int,
+    ) -> None:
+        """Initialize the experiment runner."""
         self.num_cls = dataset.num_cls
         self.data_name = dataset.data_name
         self.contamination = contamination
@@ -38,7 +58,8 @@ class KVariantEval:
         self._RESULTS_FILENAME = "results.json"
         self._ASSESSMENT_FILENAME = "assessment_results.json"
 
-    def process_results(self):  # type: ignore
+    def process_results(self) -> None:
+        """Process the results of an experiment."""
         TS_f1s = []
         TS_aps = []
         TS_aucs = []
@@ -71,12 +92,12 @@ class KVariantEval:
             except Exception as e:
                 print(e)
 
-        TS_f1s = np.array(TS_f1s)
-        TS_aps = np.array(TS_aps)
-        TS_aucs = np.array(TS_aucs)
-        avg_TS_f1 = np.mean(TS_f1s, 0)
-        avg_TS_ap = np.mean(TS_aps, 0)
-        avg_TS_auc = np.mean(TS_aucs, 0)
+        TS_f1s_arr = np.array(TS_f1s)
+        TS_aps_arr = np.array(TS_aps)
+        TS_aucs_arr = np.array(TS_aucs)
+        avg_TS_f1 = TS_f1s_arr.mean(0)
+        avg_TS_ap = TS_aps_arr.mean(0)
+        avg_TS_auc = TS_aucs_arr.mean(0)
         assessment_results["avg_TS_f1_all"] = avg_TS_f1.mean()
         assessment_results["std_TS_f1_all"] = avg_TS_f1.std()
         assessment_results["avg_TS_ap_all"] = avg_TS_ap.mean()
@@ -89,7 +110,8 @@ class KVariantEval:
         ) as fp:
             json.dump(assessment_results, fp, indent=0)
 
-    def risk_assessment(self, experiment_class):  # type: ignore
+    def risk_assessment(self, experiment_class: Type[ExperimentRunner]) -> None:
+        """Run the experiment and process the results."""
         if not os.path.exists(self._NESTED_FOLDER):
             os.makedirs(self._NESTED_FOLDER)
 
@@ -103,13 +125,17 @@ class KVariantEval:
                 self._risk_assessment_helper(cls, experiment_class, folder)
             else:
                 print(
-                    f"File {json_results} already present! Shutting down to prevent loss of previous experiments"
+                    f"File {json_results} already present! Shutting down to "
+                    "prevent loss of previous experiments"
                 )
                 continue
 
         self.process_results()
 
-    def _risk_assessment_helper(self, cls, experiment_class, exp_path):  # type: ignore
+    def _risk_assessment_helper(
+        self, cls: int, experiment_class: Type[ExperimentRunner], exp_path: str
+    ) -> None:
+        """Run the experiment and process the results."""
         best_config = self.model_configs[0]
         experiment = experiment_class(best_config, exp_path)
 
@@ -125,8 +151,8 @@ class KVariantEval:
         for i in range(num_repeat):
             print(f"Normal Cls: {cls}")
             torch.cuda.empty_cache()
-            torch.backends.cudnn.deterministic = True
-            torch.backends.cudnn.benchmark = False
+            torch.backends.cudnn.deterministic = True  # type: ignore
+            torch.backends.cudnn.benchmark = False  # type: ignore
             np.random.seed(i + 40)
             random.seed(i + 40)
             torch.manual_seed(i + 40)

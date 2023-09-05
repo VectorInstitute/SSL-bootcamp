@@ -1,3 +1,4 @@
+"""Dataset loading functions."""
 # Latent Outlier Exposure for Anomaly Detection with Contaminated Data
 # Copyright (c) 2022 Robert Bosch GmbH
 #
@@ -13,15 +14,21 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# ruff: noqa
+from typing import Tuple
+
 import numpy as np
 import torch
 from scipy import io
 
-from .utils import *
+from .utils import CustomDataset
 
 
-def CIFAR10_feat(normal_class, root="DATA/cifar10_features/", contamination_rate=0.0):  # type: ignore
+def CIFAR10_feat(
+    normal_class: int,
+    root: str = "DATA/cifar10_features/",
+    contamination_rate: float = 0.0,
+) -> Tuple[torch.Tensor, np.ndarray, torch.Tensor, np.ndarray]:
+    """Load CIFAR10 features."""
     trainset = torch.load(root + "trainset_2048.pt")
     train_data, train_targets = trainset
     testset = torch.load(root + "testset_2048.pt")
@@ -46,7 +53,12 @@ def CIFAR10_feat(normal_class, root="DATA/cifar10_features/", contamination_rate
     return train_data, train_labels, test_data, test_labels
 
 
-def FMNIST_feat(normal_class, root="DATA/fmnist_features/", contamination_rate=0.0):  # type: ignore
+def FMNIST_feat(
+    normal_class: int,
+    root: str = "DATA/fmnist_features/",
+    contamination_rate: float = 0.0,
+) -> Tuple[torch.Tensor, np.ndarray, torch.Tensor, np.ndarray]:
+    """Load Fashion MNIST features."""
     trainset = torch.load(root + "trainset_2048.pt")
     train_data, train_targets = trainset
     testset = torch.load(root + "testset_2048.pt")
@@ -71,7 +83,10 @@ def FMNIST_feat(normal_class, root="DATA/fmnist_features/", contamination_rate=0
     return train_data, train_labels, test_data, test_labels
 
 
-def synthetic_contamination(norm, anorm, contamination_rate):  # type: ignore
+def synthetic_contamination(
+    norm: np.ndarray, anorm: np.ndarray, contamination_rate: float
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Create a synthetic dataset with contamination."""
     num_clean = norm.shape[0]
     num_contamination = int(contamination_rate / (1 - contamination_rate) * num_clean)
 
@@ -79,7 +94,7 @@ def synthetic_contamination(norm, anorm, contamination_rate):  # type: ignore
         idx_contamination = np.random.choice(
             np.arange(anorm.shape[0]), num_contamination, replace=False
         )
-    except:
+    except ValueError:
         idx_contamination = np.random.choice(
             np.arange(anorm.shape[0]), num_contamination, replace=True
         )
@@ -93,7 +108,10 @@ def synthetic_contamination(norm, anorm, contamination_rate):  # type: ignore
     return train_data, train_labels
 
 
-def Thyroid_data(contamination_rate):  # type: ignore
+def Thyroid_data(
+    contamination_rate: float,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Load Thyroid data."""
     data = io.loadmat("DATA/thyroid.mat")
     samples = data["X"]  # 3772
     labels = ((data["y"]).astype(np.int32)).reshape(-1)
@@ -113,7 +131,10 @@ def Thyroid_data(contamination_rate):  # type: ignore
     return train, train_label, test_data, test_label
 
 
-def Arrhythmia_data(contamination_rate):  # type: ignore
+def Arrhythmia_data(
+    contamination_rate: float,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Load Arrhythmia data."""
     data = io.loadmat("DATA/arrhythmia.mat")
     samples = data["X"]  # 518
     labels = ((data["y"]).astype(np.int32)).reshape(-1)
@@ -133,7 +154,8 @@ def Arrhythmia_data(contamination_rate):  # type: ignore
     return train, train_label, test_data, test_label
 
 
-def load_data(data_name, cls, contamination_rate=0.0):  # type: ignore
+def load_data(data_name: str, cls: int, contamination_rate: float = 0.0) -> Tuple:
+    """Load the dataset."""
     ## normal data with label 0, anomalies with label 1
 
     if data_name == "cifar10_feat":
@@ -148,7 +170,10 @@ def load_data(data_name, cls, contamination_rate=0.0):  # type: ignore
         train, train_label, test, test_label = Thyroid_data(contamination_rate)
     elif data_name == "arrhythmia":
         train, train_label, test, test_label = Arrhythmia_data(contamination_rate)
+    else:
+        raise NotImplementedError
 
     trainset = CustomDataset(train, train_label)
     testset = CustomDataset(test, test_label)
+
     return trainset, testset, testset

@@ -1,27 +1,27 @@
-# type: ignore
-# ruff: noqa
+"""PYOD wrapper."""
+from typing import Dict, Optional
 
 import numpy as np
-
-# from pyod.models.so_gaal import SO_GAAL
-# from pyod.models.mo_gaal import MO_GAAL
-# from pyod.models.xgbod import XGBOD
-# from pyod.models.deep_svdd import DeepSVDD
 from deepod.models.icl import ICL
 from myutils import Utils
-
-# from pyod.models.vae import VAE
-# from pyod.models.combination import aom
-# from pyod.models.feature_bagging import FeatureBagging
-# add the baselines from the pyod package
 from pyod.models.lof import LOF
 
 
 class PYOD:
-    def __init__(self, seed, model_name, tune=False):  # type: ignore
-        """:param seed: seed for reproducible results
-        :param model_name: model name
-        :param tune: if necessary, tune the hyper-parameter based on the validation set constructed by the labeled anomalies
+    """PYOD wrapper."""
+
+    def __init__(self, seed: int, model_name: str, tune: bool = False) -> None:
+        """Initialize the wrapper.
+
+        Parameters
+        ----------
+        seed : int
+            Random seed for reproducible results.
+        model_name : str
+            The name of the model.
+        tune : bool
+            If necessary, tune the hyper-parameter based on the validation set
+            constructed by the labeled anomalies
         """
         self.seed = seed
         self.utils = Utils()
@@ -33,9 +33,9 @@ class PYOD:
 
         self.tune = tune
 
-    def grid_hp(self, model_name):  # type: ignore
-        """Define the hyper-parameter search grid for different unsupervised mdoel."""
-        param_grid_dict = {
+    def grid_hp(self, model_name: str) -> Optional[list]:
+        """Define the hyper-parameter search grid for different unsupervised m0del."""
+        param_grid_dict: Dict[str, Optional[list]] = {
             "IForest": [10, 50, 100, 500],  # n_estimators, default=100
             "OCSVM": ["linear", "poly", "rbf", "sigmoid"],  # kernel, default='rbf',
             "ABOD": [3, 5, 7, 9],  # n_neighbors, default=5
@@ -68,9 +68,13 @@ class PYOD:
 
         return param_grid_dict[model_name]
 
-    def grid_search(self, X_train, y_train, ratio=None):  # type: ignore
-        """Implement the grid search for unsupervised models and return the best hyper-parameters
-        the ratio could be the ground truth anomaly ratio of input dataset.
+    def grid_search(
+        self, X_train: np.ndarray, y_train: np.ndarray, ratio: float
+    ) -> Optional[dict]:
+        """Run a grid search for unsupervised models.
+
+        Return the best hyper-parameters. The ratio refers to the ground truth
+        anomaly ratio of input dataset.
         """
         # set seed
         self.utils.set_seed(self.seed)
@@ -103,19 +107,19 @@ class PYOD:
                     else:
                         raise NotImplementedError
 
-                except:
+                except Exception:
                     metric_list.append(0.0)
                     continue
 
                 try:
                     # model performance on the validation set
-                    score_val = model.decision_function(X_val)
+                    score_val = self.model.decision_function(X_val)
                     metric = self.utils.metric(
                         y_true=y_val, y_score=score_val, pos_label=1
                     )
                     metric_list.append(metric["aucpr"])
 
-                except:
+                except Exception:
                     metric_list.append(0.0)
                     continue
 
@@ -133,14 +137,18 @@ class PYOD:
 
         return best_param
 
-    def fit(self, X_train, y_train, ratio=None):  # type: ignore
+    def fit(  # noqa: C901
+        self, X_train: np.ndarray, y_train: np.ndarray, ratio: Optional[float] = None
+    ) -> "PYOD":
+        """Fit the model."""
         if self.model_name in ["AutoEncoder", "VAE"]:
             # only use the normal samples to fit the model
             idx_n = np.where(y_train == 0)[0]
             X_train = X_train[idx_n]
             y_train = y_train[idx_n]
 
-        # selecting the best hyper-parameters of unsupervised model for fair comparison (if labeled anomalies is available)
+        # selecting the best hyper-parameters of unsupervised model for fair
+        # comparison (if labeled anomalies is available)
         if sum(y_train) > 0 and self.tune:
             assert ratio is not None
             best_param = self.grid_search(X_train, y_train, ratio)
@@ -154,7 +162,7 @@ class PYOD:
 
         # fit best on the best param
         if best_param is not None:
-            if self.model_name == "IForest":
+            if self.model_name in ["IForest", "FeatureBagging"]:
                 self.model = self.model_dict[self.model_name](
                     n_estimators=best_param
                 ).fit(X_train)
@@ -163,99 +171,51 @@ class PYOD:
                 self.model = self.model_dict[self.model_name](kernel=best_param).fit(
                     X_train
                 )
-
-            elif self.model_name == "ABOD":
+            elif self.model_name in ["ABOD", "COF", "KNN", "LOF", "SOD"]:
                 self.model = self.model_dict[self.model_name](
                     n_neighbors=best_param
                 ).fit(X_train)
-
             elif self.model_name == "CBLOF":
                 self.model = self.model_dict[self.model_name](
                     n_clusters=best_param
                 ).fit(X_train)
-
-            elif self.model_name == "COF":
-                self.model = self.model_dict[self.model_name](
-                    n_neighbors=best_param
-                ).fit(X_train)
-
-            elif self.model_name == "FeatureBagging":
-                self.model = self.model_dict[self.model_name](
-                    n_estimators=best_param
-                ).fit(X_train)
-
-            elif self.model_name == "HBOS":
+            elif self.model_name in ["HBOS", "LODA"]:
                 self.model = self.model_dict[self.model_name](n_bins=best_param).fit(
                     X_train
                 )
-
-            elif self.model_name == "KNN":
-                self.model = self.model_dict[self.model_name](
-                    n_neighbors=best_param
-                ).fit(X_train)
-
             elif self.model_name == "LMDD":
                 self.model = self.model_dict[self.model_name](
                     dis_measure=best_param
                 ).fit(X_train)
-
-            elif self.model_name == "LODA":
-                self.model = self.model_dict[self.model_name](n_bins=best_param).fit(
-                    X_train
-                )
-
-            elif self.model_name == "LOF":
-                self.model = self.model_dict[self.model_name](
-                    n_neighbors=best_param
-                ).fit(X_train)
-
             elif self.model_name == "LOCI":
                 self.model = self.model_dict[self.model_name](alpha=best_param).fit(
                     X_train
                 )
-
             elif self.model_name == "LSCP":
                 self.model = self.model_dict[self.model_name](
                     detector_list=[LOF(), LOF()], n_bins=best_param
                 ).fit(X_train)
-
             elif self.model_name == "PCA":
                 self.model = self.model_dict[self.model_name](
                     n_components=best_param
                 ).fit(X_train)
-
-            elif self.model_name == "SOD":
-                self.model = self.model_dict[self.model_name](
-                    n_neighbors=best_param
-                ).fit(X_train)
-
             elif self.model_name == "SOS":
                 self.model = self.model_dict[self.model_name](
                     perplexity=best_param
                 ).fit(X_train)
-
-            elif self.model_name == "SOGAAL":
+            elif self.model_name in ["SOGAAL", "MOGAAL"]:
                 self.model = self.model_dict[self.model_name](
                     stop_epochs=best_param
                 ).fit(X_train)
-
-            elif self.model_name == "MOGAAL":
-                self.model = self.model_dict[self.model_name](
-                    stop_epochs=best_param
-                ).fit(X_train)
-
             elif self.model_name == "DeepSVDD":
                 self.model = self.model_dict[self.model_name](epochs=best_param).fit(
                     X_train
                 )
-
             elif self.model_name == "ICL":
                 self.clf = ICL(device="cpu")
                 self.model = self.clf(X_train)
-
             else:
                 raise NotImplementedError
-
         else:
             # unsupervised method would ignore the y labels
             self.model = self.model_dict[self.model_name]().fit(X_train, y_train)
@@ -263,6 +223,7 @@ class PYOD:
         return self
 
     # from pyod: for consistency, outliers are assigned with larger anomaly scores
-    def predict_score(self, X):  # type: ignore
+    def predict_score(self, X: np.ndarray) -> np.ndarray:
+        """Predict the decision score of the input samples."""
         score = self.model.decision_function(X)
         return score
