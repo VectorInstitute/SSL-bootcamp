@@ -1,16 +1,20 @@
 --extra-index-url https://download.pytorch.org/whl/cu117
 
 black
+copulas
 dataclasses
+deepod
 ipykernel
 lightning==2.0.6
 lightning-bolts
 matplotlib
 mypy
 nbqa[ruff,mypy,black,jupytext]
+notebook
 numpy
 pandas
 pre-commit
+pyod
 pytest
 pytest-cov
 pytorch_tabular==1.0.2
