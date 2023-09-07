@@ -1,6 +1,6 @@
 # Self-Supervised Learning (SSL) Bootcamp
 This repository contains reference implementations of three self-supervised learning
-explored during the Vector Institute's Self-Supervised Learning (SSL) Bootcamp.
+techniques explored during the Vector Institute's Self-Supervised Learning (SSL) Bootcamp.
 
 # Installing dependencies
 ```
@@ -10,7 +10,13 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-# using pre-commit hooks
+If you are on the Vector Institute's Vaughan cluster, the environment is already set up and can be activated with
+
+```
+source /ssd003/projects/aieng/public/ssl_bootcamp_resources/venv/bin/activate
+```
+
+# Using pre-commit hooks
 To check your code at commit time
 ```
 pre-commit install
