@@ -11,6 +11,7 @@ matplotlib
 mypy
 nbqa[ruff,mypy,black,jupytext]
 notebook
+optuna
 pandas
 pre-commit
 pyod
@@ -24,6 +25,8 @@ toml
 torch==1.13.0+cu117
 torchvision==0.14.0+cu117
 transformers==4.31.0
+transtab
 types-requests
 types-setuptools
 wandb
+xgboost
