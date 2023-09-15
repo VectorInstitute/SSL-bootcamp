@@ -143,3 +143,5 @@ dmypy.json
 masked_modelling/experiments/*
 masked_modelling/*.xls
 masked_modelling/archive/*
+
+*.ts
