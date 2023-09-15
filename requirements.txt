@@ -11,6 +11,7 @@ matplotlib
 mypy
 nbqa[ruff,mypy,black,jupytext]
 notebook
+optuna
 pandas
 pre-commit
 pyod
