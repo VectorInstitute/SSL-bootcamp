@@ -5,6 +5,7 @@ copulas
 dataclasses
 deepod
 ipykernel
+kaggle
 lightning==2.0.6
 lightning-bolts
 matplotlib
