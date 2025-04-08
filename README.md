@@ -21,7 +21,7 @@ that you like, including uv, conda, and virtualenv.
 With uv, you can create a virtual environment with the following command:
 
 ```bash
-uv venv -n --seed --python 3.9 /path/to/new/virtual/environment/ssl_env`
+uv venv -n --seed --python 3.9 /path/to/new/virtual/environment/ssl_env
 ```
 This will create a new virtual environment in the specified path.
 
