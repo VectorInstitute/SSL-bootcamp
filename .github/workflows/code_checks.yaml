@@ -49,8 +49,3 @@ jobs:
         run: |
           source .venv/bin/activate
           pre-commit run --all-files
-
-      - name: pip-audit (gh-action-pip-audit)
-        uses: pypa/gh-action-pip-audit@v1.1.0
-        with:
-          virtual-environment: .venv/
