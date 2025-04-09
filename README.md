@@ -1,6 +1,6 @@
-# Self-Supervised Learning (SSL) Bootcamp
+# Self-Supervised Learning (SSL) bootcamp
 This repository contains reference implementations of three self-supervised learning
-techniques explored during the Vector Institute's Self-Supervised Learning (SSL) Bootcamp.
+techniques explored during the Vector Institute's Self-Supervised Learning (SSL) bootcamp.
 
 # Summary of Reference Implementations
 
@@ -37,8 +37,8 @@ source /path/to/new/virtual/environment/ssl_env/bin/activate
 Then, you can install the dependencies for this project with the following command:
 
 ```bash
-git clone https://github.com/VectorInstitute/SSL-Bootcamp.git
-cd SSL-Bootcamp
+git clone https://github.com/VectorInstitute/SSL-bootcamp.git
+cd SSL-bootcamp
 uv sync --no-cache --active --dev
 ```
 **Note**: The `--active` flag in the above command assumes that you have already
